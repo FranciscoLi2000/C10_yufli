@@ -41,10 +41,24 @@ void	print_error(char *prog_name, char *filename)
 	write(2, error_msg, ft_strlen(error_msg));
 	write(2, "\n", 1);
 }
+/* 模拟 lseek 的行为 */
+off_t	ft_lseek(int fd, off_t offset)
+{
+	char	buffer[1];
+	off_t	pos;
+
+	pos = 0;
+	while (pos < offset)
+	{
+		if (read(fd, buffer, 1) != 1)
+			return (-1);
+		pos++;
+	}
+	return (pos);
+}
 void	process_file(char *prog_name, char *filename, long n)
 {
-	char	buffer[4096];
-	ssize_t	bytes_read;
+	char	buffer[1];
 	int	fd;
 	off_t	file_size;
 	off_t	start_pos;
@@ -55,31 +69,32 @@ void	process_file(char *prog_name, char *filename, long n)
 		print_error(prog_name, filename);
 		return ;
 	}
-	/* 2. 使用 lseek(fd, 0, SEEK_END) 获取文件总大小 */
-	file_size = lseek(fd, 0, SEEK_END);
-	if (file_size == -1)
-	{
-		print_error(prog_name, filename);
-		close(fd);
-		return ;
-	}
+	/* 2. 获取文件总大小 */
+	file_size = 0;
+	while (read(fd, buffer, 1) == 1)
+		file_size++;
 	/* 3. 计算起始位置 */
 	if (file_size > n)
 		start_pos = file_size - n;
 	else
 		start_pos = 0;
-	/* 4. 再次使用 lseek 移动到 start_pos */
-	if (lseek(fd, start_pos, SEEK_SET) == -1)
+	/* 4. 重新打开文件并定位到起始位置 */
+	close(fd);
+	fd = open(filename, O_RDONLY);
+	if (fd == -1)
+	{
+		print_error(prog_name, filename);
+		return ;
+	}
+	if (ft_lseek(fd, start_pos) == -1)
 	{
 		print_error(prog_name, filename);
 		close(fd);
 		return ;
 	}
 	/* 5. 读取从 start_pos 到文件末尾的数据 */
-	while ((bytes_read = read(fd, buffer, sizeof(buffer))) > 0)
-	{
-		write(STDOUT_FILENO, buffer, bytes_read);
-	}
+	while (read(fd, buffer, 1) == 1)
+		write(STDOUT_FILENO, buffer, 1);
 	close(fd);
 }
 int	main(int argc, char **argv)
