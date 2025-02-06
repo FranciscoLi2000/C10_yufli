@@ -6,9 +6,7 @@ CFLAGS = -Wall -Wextra -Werror
 .PHONY: all clean fclean
 all: $(NAME)
 $(NAME): $(SRC)
-	$(CC) $(CFLAGS) $@ $^
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -o $(NAME) $(SRC)
 clean:
 	@echo "Removing object files..."
 	@rm -f *.o

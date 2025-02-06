@@ -4,7 +4,7 @@
 int	main(int argc, char **argv)
 {
 	char	buffer[1024];
-	size_t	bytes_read;
+	ssize_t	bytes_read;
 	int	fd;
 
 	if (argc < 2)
