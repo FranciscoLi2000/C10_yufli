@@ -6,40 +6,43 @@
 #include <errno.h>
 void	print_error(char *prog_name, char *filename);
 void	process_file(char *prog_name, char *filename, long n);
-int	ft_strlen(char *str)
+void	ft_putchar_fd(char c, int fd)
+{
+	write(fd, &c, 1);
+}
+void	ft_putstr_fd(char *s, int fd)
 {
 	int	i;
 
 	i = 0;
-	while (str[i] != '\0')
+	while (s[i] != '\0')
+	{
+		ft_putchar_fd(s[i], fd);
 		i++;
-	return (i);
+	}
 }
-int	ft_strcmp(char const *s1, char const *s2)
+void	ft_putendl_fd(char *s, int fd)
 {
 	int	i;
 
-	while (s1[i] != '\0' || s2[i] != '\0')
+	i = 0;
+	while (s[i] != '\0')
 	{
-		if (s1[i] != s2[i])
-			return (s1[i] - s2[i]);
+		ft_putchar_fd(s[i], fd);
 		i++;
 	}
-	return (0);
+	ft_putchar_fd('\n', fd);
 }
 void	print_error(char *prog_name, char *filename)
 {
 	char	*base_prog;
-	char	*error_msg;
 
 	base_prog = basename(prog_name);
-	error_msg = strerror(errno);
-	write(2, base_prog, ft_strlen(base_prog));
-	write(2, ": ", 2);
-	write(2, filename, ft_strlen(filename));
-	write(2, ": ", 2);
-	write(2, error_msg, ft_strlen(error_msg));
-	write(2, "\n", 1);
+	ft_putstr_fd(base_prog, STDERR_FILENO);
+	ft_putstr_fd(": ", STDERR_FILENO);
+	ft_putstr_fd(filename, STDERR_FILENO);
+	ft_putstr_fd(": ", STDERR_FILENO);
+	ft_putendl_fd(strerror(errno), STDERR_FILENO);
 }
 /* 模拟 lseek 的行为 */
 off_t	ft_lseek(int fd, off_t offset)
@@ -97,6 +100,19 @@ void	process_file(char *prog_name, char *filename, long n)
 		write(STDOUT_FILENO, buffer, 1);
 	close(fd);
 }
+int	ft_strcmp(char const *s1, char const *s2)
+{
+	int	i;
+
+	i = 0;
+	while (s1[i] != '\0' || s2[i] != '\0')
+	{
+		if (s1[i] != s2[i])
+			return (s1[i] - s2[i]);
+		i++;
+	}
+	return (0);
+}
 int	main(int argc, char **argv)
 {
 	long	n;
@@ -104,13 +120,13 @@ int	main(int argc, char **argv)
 
 	if (argc < 4 || ft_strcmp(argv[1], "-c") != 0)
 	{
-		write(2, "Usage: ft_tail -c <bytes> <file1> <file2> ...\n", 45);
+		ft_putendl_fd("Usage: ft_tail -c <bytes> <file1> <file2> ...", STDERR_FILENO);
 		return (1);
 	}
 	n = atol(argv[2]);
 	if (n <= 0)
 	{
-		write(2, "Error: Invalid byte count\n", 26);
+		ft_putendl_fd("Usage: ft_tail -c <bytes> <file1> <file2> ...", STDERR_FILENO);
 		return (1);
 	}
 	i = 3;
